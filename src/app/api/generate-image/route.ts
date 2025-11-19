@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from 'pexels';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const client = createClient(process.env.PEXELS_API_KEY || '');
 
 export async function GET(request: Request) {
@@ -10,27 +13,26 @@ export async function GET(request: Request) {
   const query = `A ${style} palace exterior with ${color} accents`;
 
   try {
-    const unsplashResponse = await fetch(
-      `https://source.unsplash.com/800x600/?${query}&t=${Date.now()}`
-    );
-    if (unsplashResponse.ok) {
-      return NextResponse.json({ url: unsplashResponse.url });
-    }
-  } catch (error) {
-    console.error('Error fetching from Unsplash:', error);
-  }
+    // Use a random page to get different results
+    const randomPage = Math.floor(Math.random() * 10) + 1;
+    const pexelsResponse = await client.photos.search({ 
+      query, 
+      per_page: 1,
+      page: randomPage 
+    });
 
-  try {
-    const pexelsResponse = await client.photos.search({ query, per_page: 1 });
     if ('photos' in pexelsResponse && pexelsResponse.photos.length > 0) {
-      return NextResponse.json({ url: pexelsResponse.photos[0].src.large });
+      return NextResponse.json({ 
+        url: pexelsResponse.photos[0].src.large,
+        provider: 'pexels'
+      });
     }
   } catch (error) {
     console.error('Error fetching from Pexels:', error);
   }
 
   return NextResponse.json(
-    { error: 'Failed to fetch image from all providers' },
+    { error: 'Failed to fetch image from provider' },
     { status: 500 }
   );
 }

@@ -11,18 +11,17 @@ So far, we have successfully:
 - Created the "New Memory" page and a form that allows a user to input text and choose how to represent their palace.
 - Implemented a feature to generate a palace image by calling an external API, with a fallback to a second provider.
 
-## Image Caching Issue: Troubleshooting Steps Taken
+## Image Caching Issue: RESOLVED ✅
 
-The primary blocker has been an aggressive and unusual caching issue where the application repeatedly serves the same generated image. Here are the steps we've taken to resolve it:
+**Root Cause:** The issue was caused by using the deprecated `source.unsplash.com` API, which was returning 503 errors and had inherent caching issues. Additionally, the Next.js API route lacked proper dynamic configuration.
 
-1. **Initial Diagnosis:** We identified that both the browser and the Next.js server can cache data, causing stale responses.
-2. **Client-Side Cache Busting:** We added a unique timestamp (`&t=${Date.now()}`) to the URL of the request made from the form to our backend API. This should have forced the browser to treat every request as unique, but it did not solve the issue.
-3. **Server-Side Next.js Cache Busting:** We used the standard Next.js approach to prevent a specific API route from being cached by adding `export const revalidate = 0;` to the file. This tells Next.js to treat the route as fully dynamic. This also did not solve the issue.
-4. **Upstream Provider Cache Busting:** We then targeted the `fetch` call _inside_ our API route that calls the Unsplash service.
-   - We first added the `{ cache: "no-store" }` option, which explicitly tells the server not to cache the result of this specific `fetch`. This did not work.
-   - As a final, brute-force attempt, we added a unique timestamp directly to the Unsplash URL (`...&t=${Date.now()}`). This makes every single request to the Unsplash server itself unique.
+**Solution:**
+1. Switched to Pexels as the primary image provider
+2. Added Next.js dynamic route configuration (`export const dynamic = 'force-dynamic'` and `export const revalidate = 0`)
+3. Implemented random page selection to ensure image variety
+4. Set up `.env.local` with Pexels API key
 
-**Conclusion:** The fact that none of these standard and aggressive cache-busting techniques have worked is highly unusual and points to a caching layer outside of the application's control, possibly within the development environment or a network proxy. I have exhausted all available software-level solutions for this specific problem.
+**Result:** Image generation now works reliably. Multiple clicks on "Generate Image" return different images as expected, with proper `Cache-Control: no-store, must-revalidate` headers.
 
 ## Punch List: Next Steps
 
