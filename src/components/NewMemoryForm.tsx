@@ -2,13 +2,18 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { saveMemoryPalace } from '@/lib/storage';
+import { MemoryPalace } from '@/types/types';
 
 export default function NewMemoryForm() {
+  const router = useRouter();
   const [memory, setMemory] = useState('');
   const [imageSource, setImageSource] = useState('upload');
   const [imageStyle, setImageStyle] = useState('modern');
   const [imageColor, setImageColor] = useState('blue');
   const [generatedImage, setGeneratedImage] = useState('');
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,10 +37,56 @@ export default function NewMemoryForm() {
     }
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setUploadedImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log(memory, imageSource, imageStyle, imageColor);
+    setError(null);
+
+    if (!memory.trim()) {
+      setError('Please enter what you want to remember.');
+      return;
+    }
+
+    let finalImage = '';
+    if (imageSource === 'upload') {
+      if (!uploadedImage) {
+        setError('Please upload an image.');
+        return;
+      }
+      finalImage = uploadedImage;
+    } else {
+      if (!generatedImage) {
+        setError('Please generate an image first.');
+        return;
+      }
+      finalImage = generatedImage;
+    }
+
+    const newPalace: MemoryPalace = {
+      id: crypto.randomUUID(),
+      name: memory,
+      backgroundImageUrl: finalImage,
+      rooms: [],
+      createdAt: Date.now(),
+    };
+
+    try {
+      saveMemoryPalace(newPalace);
+      router.push(`/palace/${newPalace.id}`);
+    } catch (err) {
+      console.error('Failed to save memory palace:', err);
+      setError('Failed to save memory palace. Please try again.');
+    }
   };
 
   return (
@@ -56,6 +107,7 @@ export default function NewMemoryForm() {
           onChange={(e) => setMemory(e.target.value)}
           className='w-full p-2 bg-gray-700 text-white rounded-md'
           rows={4}
+          placeholder='E.g., The order of a deck of cards, a speech, or a list of groceries.'
         />
       </div>
 
@@ -73,7 +125,7 @@ export default function NewMemoryForm() {
             onChange={() => setImageSource('upload')}
             className='mr-2'
           />
-          <label htmlFor='upload'>Upload an image</label>
+          <label htmlFor='upload' className='text-gray-300'>Upload an image</label>
         </div>
         <div className='flex items-center'>
           <input
@@ -85,7 +137,7 @@ export default function NewMemoryForm() {
             onChange={() => setImageSource('generate')}
             className='mr-2'
           />
-          <label htmlFor='generate'>Generate an image</label>
+          <label htmlFor='generate' className='text-gray-300'>Generate an image</label>
         </div>
       </div>
 
@@ -93,8 +145,21 @@ export default function NewMemoryForm() {
         <div className='mb-4'>
           <input
             type='file'
+            accept='image/*'
+            onChange={handleFileUpload}
             className='w-full p-2 bg-gray-700 text-white rounded-md'
           />
+          {uploadedImage && (
+            <div className='mt-4'>
+              <Image
+                src={uploadedImage}
+                alt='Uploaded Palace'
+                className='w-full h-auto rounded-md'
+                width={800}
+                height={600}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -113,7 +178,6 @@ export default function NewMemoryForm() {
               onChange={(e) => setImageStyle(e.target.value)}
               className='w-full p-2 bg-gray-700 text-white rounded-md'
             >
-              <option value=''>Select a style</option>
               <option value='modern'>Modern</option>
               <option value='classic'>Classic</option>
               <option value='fantasy'>Fantasy</option>
@@ -132,7 +196,6 @@ export default function NewMemoryForm() {
               onChange={(e) => setImageColor(e.target.value)}
               className='w-full p-2 bg-gray-700 text-white rounded-md'
             >
-              <option value=''>Select a color</option>
               <option value='blue'>Blue</option>
               <option value='red'>Red</option>
               <option value='green'>Green</option>
@@ -151,20 +214,22 @@ export default function NewMemoryForm() {
           >
             {isLoading ? 'Generating...' : 'Generate Image'}
           </button>
-          {error && <p className='text-red-500 text-sm mb-4'>{error}</p>}
+          
           {generatedImage && (
             <div className='mt-4'>
-              <Image
+              {/* Using img tag instead of Next.js Image to avoid potential optimization issues with Pexels URLs */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={generatedImage}
                 alt='Generated Palace'
                 className='w-full h-auto rounded-md'
-                width={800}
-                height={600}
               />
             </div>
           )}
         </div>
       )}
+
+      {error && <p className='text-red-500 text-sm mb-4'>{error}</p>}
 
       <button
         type='submit'
