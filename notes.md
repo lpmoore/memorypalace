@@ -27,19 +27,29 @@ So far, we have successfully:
 
 Despite the caching issue, we can continue building the rest of the application's logic. Here is a list of what's next:
 
-- [ ] **Implement File Upload:** Code the logic to allow a user to upload their own image from their computer.
-- [ ] **Handle Form Submission:**
+- [x] **Implement File Upload:** Code the logic to allow a user to upload their own image from their computer.
+- [x] **Handle Form Submission:**
   - Save the memory description and the selected image (URL or uploaded file).
   - Navigate the user to the next step: adding rooms to their palace.
-- [ ] **Build the Palace Editor:**
+- [x] **Build the Palace Editor:**
   - Create the main UI where the user sees their palace image.
   - Develop the functionality to add, name, and place "rooms" on the image.
-- [ ] **Build the Room Editor:**
+- [x] **Build the Room Editor:**
   - Within a room, develop the functionality to add "items."
   - For each item, create the UI for the user to write their descriptive, memorable association.
-- [ ] **Implement Exaggerated Imagery AI:**
+- [x] **Implement Exaggerated Imagery AI:**
   - Integrate with a language model API to take a user's association and generate a more vivid, exaggerated version of it.
-- [ ] **Set Up Data Persistence:**
+- [x] **Set Up Data Persistence:**
   - Choose and implement a database solution (e.g., local storage for simplicity, or a cloud database for a more robust application) to save and load the user's memory palaces.
-- [ ] **Create a User Dashboard:**
+- [x] **Create a User Dashboard:**
   - Build a page where users can see and select from all the memory palaces they've created.
+- [x] **Item Image Generation:**
+  - Generate a visual representation of the exaggerated memory association using DALL-E.
+- [x] **Item Image Preview:**
+  - Display the generated image on hover in the Room Editor.
+- [x] **Quick Polish: Delete Confirmation:**
+  - Add confirmation dialog when deleting items.
+- [x] **Enforce Image Generation:**
+  - Require image generation before adding an item (with optional skip).
+- [x] **Handle Content Policy Violations:**
+  - Gracefully handle and alert users when OpenAI safety filters block image generation.
