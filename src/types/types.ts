@@ -2,6 +2,13 @@ export interface Item {
   id: string;
   description: string;
   association: string;
+  imageUrl?: string;
+  
+  // SRS Stats
+  nextReviewDate?: number; // Timestamp
+  interval?: number; // Days
+  repetition?: number; // Count
+  easeFactor?: number; // Multiplier (default 2.5)
 }
 
 export interface Room {

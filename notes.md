@@ -27,19 +27,60 @@ So far, we have successfully:
 
 Despite the caching issue, we can continue building the rest of the application's logic. Here is a list of what's next:
 
-- [ ] **Implement File Upload:** Code the logic to allow a user to upload their own image from their computer.
-- [ ] **Handle Form Submission:**
+- [x] **Implement File Upload:** Code the logic to allow a user to upload their own image from their computer.
+- [x] **Handle Form Submission:**
   - Save the memory description and the selected image (URL or uploaded file).
   - Navigate the user to the next step: adding rooms to their palace.
-- [ ] **Build the Palace Editor:**
+- [x] **Build the Palace Editor:**
   - Create the main UI where the user sees their palace image.
   - Develop the functionality to add, name, and place "rooms" on the image.
-- [ ] **Build the Room Editor:**
+- [x] **Build the Room Editor:**
   - Within a room, develop the functionality to add "items."
   - For each item, create the UI for the user to write their descriptive, memorable association.
-- [ ] **Implement Exaggerated Imagery AI:**
+- [x] **Implement Exaggerated Imagery AI:**
   - Integrate with a language model API to take a user's association and generate a more vivid, exaggerated version of it.
-- [ ] **Set Up Data Persistence:**
+- [x] **Set Up Data Persistence:**
   - Choose and implement a database solution (e.g., local storage for simplicity, or a cloud database for a more robust application) to save and load the user's memory palaces.
-- [ ] **Create a User Dashboard:**
+- [x] **Create a User Dashboard:**
   - Build a page where users can see and select from all the memory palaces they've created.
+- [x] **Item Image Generation:**
+  - Generate a visual representation of the exaggerated memory association using DALL-E.
+- [x] **Item Image Preview:**
+  - Display the generated image on hover in the Room Editor.
+- [x] **Quick Polish: Delete Confirmation:**
+  - Add confirmation dialog when deleting items.
+- [x] **Enforce Image Generation:**
+  - Require image generation before adding an item (with optional skip).
+- [x] **Handle Content Policy Violations:**
+  - Gracefully handle and alert users when OpenAI safety filters block image generation.
+
+## Cost Analysis & Alternatives (Nov 30, 2025)
+
+**Current Cost (OpenAI DALL-E 3):** ~$0.04 per image. A 100-item palace costs ~$4.00.
+
+**Alternatives Considered:**
+
+1.  **Switch to DALL-E 2**:
+    *   **Cost**: ~$0.018 per image (55% savings).
+    *   **Pros**: Simple code change.
+    *   **Cons**: Lower resolution/quality.
+
+2.  **Pollinations.ai (Selected)**:
+    *   **Cost**: Free.
+    *   **Pros**: Unlimited, no cost.
+    *   **Cons**: No uptime guarantee, variable style.
+
+3.  **On-Demand Generation**:
+    *   **Workflow**: Generate text first (cheap), make image generation an optional manual click.
+    *   **Pros**: Pay only for what you really need.
+76: 
+77: ## Final Polish (Dec 3, 2025)
+78: 
+79: We have added significant functionality to make the app robust and usable:
+80: 
+81: - [x] **Spaced Repetition System (SRS)**: Implemented SM-2 algorithm for smart review scheduling.
+82: - [x] **Data Export/Import**: Added JSON backup/restore capability.
+83: - [x] **Dashboard Polish**: Added stats and delete functionality.
+84: - [x] **Cost Optimization**: Successfully switched to Pollinations.ai for free image generation.
+85: 
+86: The application is now a fully functional local-first MVP.

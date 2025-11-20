@@ -1,38 +1,119 @@
+import { OpenAI } from 'openai';
 import { NextResponse } from 'next/server';
-import { createClient } from 'pexels';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-const client = createClient(process.env.PEXELS_API_KEY || '');
-
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const style = searchParams.get('style');
-  const color = searchParams.get('color');
-  const query = `A ${style} palace exterior with ${color} accents`;
-
+export async function POST(request: Request) {
   try {
-    // Use a random page to get different results
-    const randomPage = Math.floor(Math.random() * 10) + 1;
-    const pexelsResponse = await client.photos.search({ 
-      query, 
-      per_page: 1,
-      page: randomPage 
-    });
+    const { prompt } = await request.json();
 
-    if ('photos' in pexelsResponse && pexelsResponse.photos.length > 0) {
-      return NextResponse.json({ 
-        url: pexelsResponse.photos[0].src.large,
-        provider: 'pexels'
-      });
+    if (!prompt) {
+      return NextResponse.json(
+        { error: 'Prompt is required' },
+        { status: 400 }
+      );
     }
-  } catch (error) {
-    console.error('Error fetching from Pexels:', error);
-  }
 
-  return NextResponse.json(
-    { error: 'Failed to fetch image from provider' },
-    { status: 500 }
-  );
+    try {
+      // Use Pollinations.ai (Free)
+      const encodedPrompt = encodeURIComponent(prompt);
+      const randomSeed = Math.floor(Math.random() * 1000000);
+      const originalImageUrl = `https://pollinations.ai/p/${encodedPrompt}?width=1024&height=1024&seed=${randomSeed}&model=flux`;
+      
+      let imageUrl = '';
+      
+      if (originalImageUrl) {
+        // Download the image
+        const imageRes = await fetch(originalImageUrl);
+        if (!imageRes.ok) throw new Error('Failed to download image from OpenAI');
+        
+        const arrayBuffer = await imageRes.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        
+        // Save to local filesystem
+        const fs = await import('fs');
+        const path = await import('path');
+        
+        const fileName = `${crypto.randomUUID()}.png`;
+        const publicDir = path.join(process.cwd(), 'public', 'generated-images');
+        
+        // Ensure directory exists
+        if (!fs.existsSync(publicDir)) {
+          fs.mkdirSync(publicDir, { recursive: true });
+        }
+        
+        const filePath = path.join(publicDir, fileName);
+        fs.writeFileSync(filePath, buffer);
+        
+        // Set the URL to the local path
+        imageUrl = `/generated-images/${fileName}`;
+      }
+
+      return NextResponse.json({ imageUrl });
+
+    } catch (imageError: any) {
+      console.error('Error generating image:', imageError);
+      throw imageError;
+    }
+  } catch (error: any) {
+    console.error('Error generating image:', error);
+    return NextResponse.json(
+      { error: 'Failed to generate image' },
+      { status: 500 }
+    );
+  }
+}
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const style = searchParams.get('style') || 'modern';
+    const color = searchParams.get('color') || 'blue';
+
+    const prompt = `A ${style} style memory palace room with ${color} color tones. Architectural photography, high quality, 8k, interior design.`;
+
+    // Use Pollinations.ai (Free)
+    const encodedPrompt = encodeURIComponent(prompt);
+    const randomSeed = Math.floor(Math.random() * 1000000);
+    const originalImageUrl = `https://pollinations.ai/p/${encodedPrompt}?width=1024&height=1024&seed=${randomSeed}&model=flux`;
+    
+    let imageUrl = '';
+    
+    if (originalImageUrl) {
+      // Download the image
+      const imageRes = await fetch(originalImageUrl);
+      if (!imageRes.ok) throw new Error('Failed to download image from Pollinations');
+      
+      const arrayBuffer = await imageRes.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      
+      // Save to local filesystem
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      const fileName = `${crypto.randomUUID()}.png`;
+      const publicDir = path.join(process.cwd(), 'public', 'generated-images');
+      
+      // Ensure directory exists
+      if (!fs.existsSync(publicDir)) {
+        fs.mkdirSync(publicDir, { recursive: true });
+      }
+      
+      const filePath = path.join(publicDir, fileName);
+      fs.writeFileSync(filePath, buffer);
+      
+      // Set the URL to the local path
+      imageUrl = `/generated-images/${fileName}`;
+    }
+
+    return NextResponse.json({ url: imageUrl });
+
+  } catch (error: any) {
+    console.error('Error generating palace image:', error);
+    return NextResponse.json(
+      { error: 'Failed to generate image' },
+      { status: 500 }
+    );
+  }
 }
